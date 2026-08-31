@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --bg: oklch(1 0 0);
+  --surface: oklch(0.965 0.008 261);
+  --ink: oklch(0.22 0.04 261);
+  --primary: oklch(0.42 0.2 261);
+  --primary-hover: oklch(0.36 0.19 261);
+  --accent: oklch(0.55 0.18 330);
+  --muted: oklch(0.45 0.03 261);
+  --rule: oklch(0.42 0.2 261 / 0.22);
+  --paper: oklch(0.99 0.004 261);
+  --focus: oklch(0.42 0.2 261);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-paper: var(--paper);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --radius-sm: 4px;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+body {
+  min-height: 100dvh;
+}
+
+::selection {
+  background: oklch(0.42 0.2 261 / 0.18);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

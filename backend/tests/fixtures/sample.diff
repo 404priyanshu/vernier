@@ -1,0 +1,38 @@
+diff --git a/src/db/queries.py b/src/db/queries.py
+index 1111111..2222222 100644
+--- a/src/db/queries.py
++++ b/src/db/queries.py
+@@ -10,6 +10,9 @@ def get_user_orders(user_id):
+     conn = get_conn()
+     cursor = conn.cursor()
++    query = f"SELECT * FROM orders WHERE user_id = '{user_id}' AND status = 'active'"
++    cursor.execute(query)
++    return cursor.fetchall()
+
+diff --git a/src/auth/session.py b/src/auth/session.py
+index 3333333..4444444 100644
+--- a/src/auth/session.py
++++ b/src/auth/session.py
+@@ -20,4 +20,6 @@ def restore_session(raw: bytes):
+     # leftover
++    import pickle
++    return pickle.loads(raw)
+
+diff --git a/src/api/orders.py b/src/api/orders.py
+index 5555555..6666666 100644
+--- a/src/api/orders.py
++++ b/src/api/orders.py
+@@ -40,3 +40,8 @@ def load_orders_with_items(order_ids):
+     items = []
++    for order_id in order_ids:
++        items.append(db.query(Item).filter(Item.order_id == order_id).all())
++    return items
+
+diff --git a/src/config.py b/src/config.py
+index 7777777..8888888 100644
+--- a/src/config.py
++++ b/src/config.py
+@@ -1,3 +1,5 @@
+ import os
++DEBUG = True
++SECRET_KEY = "supersecret123456"
