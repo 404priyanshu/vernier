@@ -1,9 +1,9 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.config import get_settings
-from app.database import SessionLocal, get_db
+from app.database import get_db
 from app.deps import get_cache, get_ports
 from app.models import Finding, Review
 from app.schemas import ReviewDetail, ReviewSummary, ScanRequest, StatsOut
@@ -37,17 +37,6 @@ def _summary(review: Review) -> ReviewSummary:
         created_at=review.created_at,
         completed_at=review.completed_at,
     )
-
-
-def _run_job(review_id: str, heuristics_only: bool, ports: PipelinePorts) -> None:
-    db = SessionLocal()
-    try:
-        run_review(db, review_id, ports, heuristics_only=heuristics_only)
-    except Exception:
-        # Status is persisted inside run_review.
-        pass
-    finally:
-        db.close()
 
 
 @router.get("", response_model=list[ReviewSummary])
@@ -96,10 +85,9 @@ def get_review(review_id: str, db: Session = Depends(get_db)) -> ReviewDetail:
     return detail
 
 
-@router.post("", response_model=ReviewSummary, status_code=202)
+@router.post("", response_model=ReviewSummary, status_code=200)
 def create_review(
     payload: ScanRequest,
-    background: BackgroundTasks,
     db: Session = Depends(get_db),
     ports: PipelinePorts = Depends(get_ports),
 ) -> ReviewSummary:
@@ -136,5 +124,11 @@ def create_review(
     db.add(review)
     db.commit()
     db.refresh(review)
-    background.add_task(_run_job, review.id, payload.heuristics_only, ports)
-    return _summary(review)
+    try:
+        run_review(db, review.id, ports, heuristics_only=payload.heuristics_only)
+    except Exception:
+        pass
+    loaded = db.scalar(select(Review).options(selectinload(Review.findings)).where(Review.id == review.id))
+    if loaded is None:
+        raise HTTPException(status_code=500, detail="Review was not saved")
+    return _summary(loaded)

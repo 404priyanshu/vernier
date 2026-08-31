@@ -34,13 +34,14 @@ def create_app() -> FastAPI:
     application.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
+        allow_origin_regex=r"https://.*\.vercel\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    application.include_router(health.router)
-    application.include_router(reviews.router)
-    application.include_router(webhooks.router)
+    application.include_router(health.router, prefix="/api")
+    application.include_router(reviews.router, prefix="/api")
+    application.include_router(webhooks.router, prefix="/api")
     return application
 
 

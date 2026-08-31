@@ -67,14 +67,23 @@ GitHub Actions runs Ruff + Pytest for the API and `tsc` + lint + production buil
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/health` | Postgres, Redis, LLM status |
-| GET | `/reviews` | List reviews |
-| GET | `/reviews/stats` | Cache and corpus counters |
-| GET | `/reviews/{id}` | Review plus findings |
-| POST | `/reviews` | `{ "pr_url" }` or `{ "diff" }` |
-| POST | `/webhooks/github` | `pull_request` opened / synchronize |
+| GET | `/api/health` | Postgres, Redis, LLM status |
+| GET | `/api/reviews` | List reviews |
+| GET | `/api/reviews/stats` | Cache and corpus counters |
+| GET | `/api/reviews/{id}` | Review plus findings |
+| POST | `/api/reviews` | `{ "pr_url" }` or `{ "diff" }` |
+| POST | `/api/webhooks/github` | `pull_request` opened / synchronize |
 
-POST `/reviews` returns `202` and runs the pipeline in a background task. Poll GET until `status` is `completed` or `failed`.
+POST `/api/reviews` runs the pipeline in the request and returns the finished review.
+
+## Deploy on Vercel
+
+The repo is a Vercel Services project: Next.js at `/` and FastAPI at `/api`. Postgres is Neon. Redis is Upstash.
+
+```bash
+vercel link --yes --project vernier
+vercel --prod
+```
 
 ## Caching
 
@@ -84,4 +93,4 @@ TTL defaults to seven days (`CACHE_TTL_SECONDS`). Repeating the same diff agains
 
 ## Webhooks
 
-Point a GitHub webhook at `POST /webhooks/github` for `pull_request` events. Set `GITHUB_WEBHOOK_SECRET` to require `X-Hub-Signature-256`.
+Point a GitHub webhook at `POST /api/webhooks/github` for `pull_request` events. Set `GITHUB_WEBHOOK_SECRET` to require `X-Hub-Signature-256`.

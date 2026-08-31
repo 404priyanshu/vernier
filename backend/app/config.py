@@ -1,14 +1,26 @@
+import os
 from functools import lru_cache
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(".env", "../.env"),
+        extra="ignore",
+        populate_by_name=True,
+    )
 
     app_name: str = "Vernier"
-    database_url: str = "postgresql+psycopg://vernier:vernier@localhost:5433/vernier"
-    redis_url: str = "redis://localhost:6379/0"
+    database_url: str = Field(
+        default="postgresql+psycopg://vernier:vernier@localhost:5433/vernier",
+        validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_URL", "POSTGRES_PRISMA_URL"),
+    )
+    redis_url: str = Field(
+        default="redis://localhost:6379/0",
+        validation_alias=AliasChoices("REDIS_URL", "KV_URL", "UPSTASH_REDIS_URL"),
+    )
 
     xai_api_key: str = ""
     openai_api_key: str = ""
@@ -40,7 +52,20 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [part.strip() for part in self.cors_origins.split(",") if part.strip()]
+        origins = [part.strip() for part in self.cors_origins.split(",") if part.strip()]
+        host = os.getenv("VERCEL_PROJECT_PRODUCTION_URL") or os.getenv("VERCEL_URL")
+        if host:
+            origins.append(f"https://{host.removeprefix('https://')}")
+        return origins
+
+    @property
+    def sqlalchemy_url(self) -> str:
+        url = self.database_url
+        if url.startswith("postgres://"):
+            return "postgresql+psycopg://" + url[len("postgres://") :]
+        if url.startswith("postgresql://") and "+psycopg" not in url.split("://", 1)[0]:
+            return "postgresql+psycopg://" + url[len("postgresql://") :]
+        return url
 
 
 @lru_cache

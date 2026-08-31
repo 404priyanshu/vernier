@@ -4,11 +4,11 @@ import hashlib
 import hmac
 import json
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.database import SessionLocal, get_db
+from app.database import get_db
 from app.deps import get_ports
 from app.models import Review
 from app.services.pipeline import PipelinePorts, run_review
@@ -26,20 +26,9 @@ def _verify_signature(secret: str, body: bytes, signature: str | None) -> None:
         raise HTTPException(status_code=401, detail="Invalid GitHub signature")
 
 
-def _run_job(review_id: str, ports: PipelinePorts) -> None:
-    db = SessionLocal()
-    try:
-        run_review(db, review_id, ports)
-    except Exception:
-        pass
-    finally:
-        db.close()
-
-
 @router.post("/github")
 async def github_webhook(
     request: Request,
-    background: BackgroundTasks,
     db: Session = Depends(get_db),
     ports: PipelinePorts = Depends(get_ports),
     x_hub_signature_256: str | None = Header(default=None),
@@ -82,5 +71,8 @@ async def github_webhook(
     db.add(review)
     db.commit()
     db.refresh(review)
-    background.add_task(_run_job, review.id, ports)
+    try:
+        run_review(db, review.id, ports)
+    except Exception:
+        pass
     return {"queued": review.id}
