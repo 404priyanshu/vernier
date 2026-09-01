@@ -1,3 +1,4 @@
+from app.config import Settings
 from app.services.llm import parse_findings_payload
 
 
@@ -19,3 +20,16 @@ def test_parse_findings_payload_filters_junk():
 
 def test_parse_empty_object():
     assert parse_findings_payload("{}") == []
+
+
+def test_featherless_key_selects_provider():
+    settings = Settings(
+        featherless_api_key="test-key",
+        xai_api_key="",
+        openai_api_key="",
+        llm_base_url="",
+        llm_model="",
+    )
+    assert settings.llm_api_key == "test-key"
+    assert settings.resolved_llm_base_url == "https://api.featherless.ai/v1"
+    assert settings.resolved_llm_model == "Qwen/Qwen2.5-Coder-32B-Instruct"

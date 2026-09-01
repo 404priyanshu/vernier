@@ -26,7 +26,7 @@ def get_ports() -> PipelinePorts:
         llm=LLMAnalyzer(
             api_key=settings.llm_api_key,
             base_url=settings.resolved_llm_base_url,
-            model=settings.llm_model,
+            model=settings.resolved_llm_model,
         ),
         github=GithubClient(token=settings.github_token, api_url=settings.github_api_url),
         settings=settings,
@@ -39,7 +39,7 @@ def ports_from_settings(settings: Settings, cache: CacheBackend | None = None) -
         llm=LLMAnalyzer(
             api_key=settings.llm_api_key,
             base_url=settings.resolved_llm_base_url,
-            model=settings.llm_model,
+            model=settings.resolved_llm_model,
         ),
         github=GithubClient(token=settings.github_token, api_url=settings.github_api_url),
         settings=settings,

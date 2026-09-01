@@ -24,8 +24,9 @@ class Settings(BaseSettings):
 
     xai_api_key: str = ""
     openai_api_key: str = ""
+    featherless_api_key: str = ""
     llm_base_url: str = ""
-    llm_model: str = "grok-4.6"
+    llm_model: str = ""
 
     github_token: str = ""
     github_webhook_secret: str = ""
@@ -40,15 +41,27 @@ class Settings(BaseSettings):
 
     @property
     def llm_api_key(self) -> str:
-        return self.xai_api_key or self.openai_api_key
+        return self.xai_api_key or self.openai_api_key or self.featherless_api_key
 
     @property
     def resolved_llm_base_url(self) -> str:
         if self.llm_base_url:
             return self.llm_base_url.rstrip("/")
-        if self.xai_api_key or not self.openai_api_key:
+        if self.xai_api_key:
             return "https://api.x.ai/v1"
-        return "https://api.openai.com/v1"
+        if self.openai_api_key:
+            return "https://api.openai.com/v1"
+        if self.featherless_api_key:
+            return "https://api.featherless.ai/v1"
+        return "https://api.x.ai/v1"
+
+    @property
+    def resolved_llm_model(self) -> str:
+        if self.llm_model:
+            return self.llm_model
+        if self.featherless_api_key and not self.xai_api_key:
+            return "Qwen/Qwen2.5-Coder-32B-Instruct"
+        return "grok-4.6"
 
     @property
     def cors_origin_list(self) -> list[str]:

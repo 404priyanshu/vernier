@@ -32,5 +32,5 @@ def health(db: Session = Depends(get_db), cache: CacheBackend = Depends(get_cach
         "postgres": postgres,
         "redis": redis,
         "llm": "configured" if settings.llm_api_key else "heuristic-only",
-        "model": settings.llm_model,
+        "model": settings.resolved_llm_model,
     }

@@ -51,7 +51,7 @@ DATABASE_URL=sqlite:///./vernier.db ../.venv/bin/uvicorn app.main:app --reload -
 
 Open [http://localhost:3000](http://localhost:3000). The API seeds a sample review of `harbor-labs/checkout-api#1842` so the bench is not empty on first boot.
 
-Set `XAI_API_KEY` (or `OPENAI_API_KEY` + `LLM_BASE_URL`) to enable LLM-assisted analysis. Without a key, Vernier still completes reviews using heuristics and template fixes.
+Set `FEATHERLESS_API_KEY` (or `XAI_API_KEY` / `OPENAI_API_KEY` + `LLM_BASE_URL`) to enable LLM-assisted analysis. Without a key, Vernier still completes reviews using heuristics and template fixes.
 
 Optional: `GITHUB_TOKEN` raises the GitHub API rate limit and unlocks private repositories.
 
