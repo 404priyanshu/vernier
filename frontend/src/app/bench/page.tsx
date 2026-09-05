@@ -1,98 +1,58 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ArrowRight, GitPullRequest, Plugs } from "@phosphor-icons/react/dist/ssr";
 import { getStats, listReviews } from "@/lib/api";
 import { formatWhen, prLabel } from "@/lib/format";
 import { StatusPill } from "@/components/bench/status-pill";
+import { RetryButton } from "@/components/bench/retry-button";
 import type { ReviewSummary, Stats } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function BenchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ sample?: string }>;
-}) {
+export default async function BenchPage({ searchParams }: { searchParams: Promise<{ sample?: string }> }) {
   const params = await searchParams;
+  if (params.sample === "1") redirect("/bench/sample");
   let reviews: ReviewSummary[] = [];
   let stats: Stats | null = null;
-  let loadError: string | null = null;
+  let loadError = false;
   try {
     [reviews, stats] = await Promise.all([listReviews(), getStats()]);
-  } catch (error) {
-    loadError = error instanceof Error ? error.message : "API unreachable";
+  } catch {
+    loadError = true;
   }
-
-  if (params.sample === "1" && reviews.length) {
-    const sample = reviews.find((item) => item.status === "completed") || reviews[0];
-    redirect(`/bench/${sample.id}`);
-  }
-
   return (
-    <div className="mx-auto max-w-[1120px] px-4 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em]">Bench</h1>
-          <p className="mt-2 max-w-[50ch] text-[15px] text-muted">
-            Every scan lands here. Open one to read findings, fixes, and test stubs.
-          </p>
-        </div>
-        <Link href="/bench/scan" className="bg-primary px-4 py-2.5 text-[14px] text-white">
-          Scan a pull request
-        </Link>
+    <div className="page-container app-page">
+      <div className="page-heading">
+        <div><h1 className="app-title">Your review bench.</h1>
+          <p className="page-description">Every diff, measured. Your findings, fixes, and test stubs in one place.</p></div>
+        <Link href="/bench/scan" className="button button-primary">Scan a pull request <ArrowRight size={17} /></Link>
       </div>
-      {stats ? (
-        <dl className="mt-8 grid grid-cols-2 gap-4 border-y border-rule py-5 text-[14px] sm:grid-cols-4">
-          <div>
-            <dt className="text-muted">Reviews</dt>
-            <dd className="font-mono text-lg">{stats.reviews}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Findings</dt>
-            <dd className="font-mono text-lg">{stats.findings}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Cache hits</dt>
-            <dd className="font-mono text-lg">{stats.cache_hits}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Model</dt>
-            <dd className="font-mono text-lg">{stats.llm_configured ? stats.model : "heuristics"}</dd>
-          </div>
-        </dl>
-      ) : null}
+      {stats && <dl className="stats-strip">
+        <div><dt>Reviews</dt><dd>{stats.reviews}</dd></div>
+        <div><dt>Findings</dt><dd>{stats.findings}</dd></div>
+        <div><dt>Cache hits</dt><dd>{stats.cache_hits}</dd></div>
+        <div><dt>Analysis engine</dt><dd className="model-value">{stats.llm_configured ? stats.model : "Heuristics"}</dd></div>
+      </dl>}
       {loadError ? (
-        <p role="alert" className="mt-8 border border-accent px-4 py-3 text-[14px] text-accent">
-          Could not reach the API at {process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}. Start FastAPI, then
-          refresh. {loadError}
-        </p>
-      ) : null}
-      {!loadError && reviews.length === 0 ? (
-        <div className="mt-12 max-w-[42ch]">
-          <h2 className="text-xl font-semibold">No reviews yet</h2>
-          <p className="mt-2 text-[15px] text-muted">
-            Scan a public GitHub pull request or paste a unified diff. A sample review is seeded when the API boots with
-            an empty database.
-          </p>
+        <div className="empty-state" role="status"><Plugs size={35} weight="light" /><h2>The review service is offline.</h2>
+          <p>Your bench will be available when the API reconnects. You can still explore a complete sample review.</p>
+          <div className="empty-actions"><Link href="/bench/sample" className="button button-primary">Explore a sample <ArrowRight size={17} /></Link><RetryButton /></div>
         </div>
-      ) : null}
-      {reviews.length > 0 ? (
-        <ul className="mt-6 divide-y divide-rule border-y border-rule">
-          {reviews.map((review) => (
-            <li key={review.id}>
-              <Link href={`/bench/${review.id}`} className="grid gap-2 py-4 md:grid-cols-[7rem_minmax(0,1fr)_10rem] md:items-baseline">
-                <StatusPill status={review.status} />
-                <span>
-                  <span className="block text-[16px] font-medium text-ink">{review.title}</span>
-                  <span className="mt-1 block font-mono text-[12px] text-muted">
-                    {prLabel(review.repo, review.pr_number)} / {review.finding_count} findings
-                  </span>
-                </span>
-                <span className="text-[13px] text-muted md:text-right">{formatWhen(review.created_at)}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      ) : reviews.length === 0 ? (
+        <div className="empty-state"><GitPullRequest size={35} weight="light" /><h2>A clean slate. A closer look.</h2>
+          <p>Your reviews will appear here. Start with a GitHub pull request or paste a unified diff.</p>
+          <div className="empty-actions"><Link href="/bench/scan" className="button button-primary">Start your first review</Link><Link href="/bench/sample" className="button button-secondary">Explore a sample</Link></div>
+        </div>
+      ) : (
+        <><div className="bench-section-label"><span>Recent reviews</span><span>{reviews.length} total</span></div>
+          <ul className="review-list">{reviews.map((review) => (
+            <li key={review.id}><Link href={`/bench/${review.id}`}>
+              <StatusPill status={review.status} />
+              <span><span className="review-list-title">{review.title}</span><span className="review-list-meta">{prLabel(review.repo, review.pr_number)} · {review.finding_count} findings</span></span>
+              <time dateTime={review.created_at}>{formatWhen(review.created_at)}</time><ArrowRight size={17} />
+            </Link></li>
+          ))}</ul></>
+      )}
     </div>
   );
 }

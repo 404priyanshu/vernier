@@ -1,39 +1,26 @@
-import { Reveal } from "./reveal";
+import { GitDiff, Stack, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 
 const STEPS = [
-  {
-    title: "Fetch the diff",
-    body: "Pull the GitHub patch, split it into hunks, and keep the surrounding file context.",
-  },
-  {
-    title: "Batch and cache",
-    body: "Pack hunks into model batches. Redis stores the prompt identity and the result so repeats cost nothing.",
-  },
-  {
-    title: "Return findings",
-    body: "Merge heuristic hits with the model, then attach a concrete fix and a test stub.",
-  },
+  { title: "Fetch the diff", body: "Pull the GitHub patch and file context.", icon: GitDiff },
+  { title: "Batch and cache", body: "Group related hunks and reuse cached analysis.", icon: Stack },
+  { title: "Return findings", body: "Surface issues with a clear fix and regression test.", icon: CheckCircle },
 ];
 
 export function Workflow() {
   return (
-    <section id="how" className="mx-auto max-w-[1120px] px-4 py-20">
-      <Reveal>
-        <h2 className="text-3xl font-semibold tracking-[-0.03em] text-primary md:text-4xl">How Vernier works</h2>
-      </Reveal>
-      <Reveal className="mt-10">
-        <div className="grid bg-surface md:grid-cols-3">
-          {STEPS.map((step, index) => (
-            <article
-              key={step.title}
-              className={`px-6 py-8 md:px-8 ${index > 0 ? "border-t border-rule md:border-t-0 md:border-l" : ""}`}
-            >
-              <h3 className="text-2xl font-semibold tracking-tight text-primary">{step.title}</h3>
-              <p className="mt-3 max-w-[36ch] text-[15px] leading-relaxed text-ink">{step.body}</p>
-            </article>
-          ))}
-        </div>
-      </Reveal>
+    <section id="how" className="workflow page-container">
+      <div className="section-intro">
+        <h2 className="section-heading">From pull request to<br />a clear next step.</h2>
+        <p>Heuristics and model analysis, working together.</p>
+      </div>
+      <div className="workflow-steps">
+        {STEPS.map((step, index) => (
+          <article key={step.title}>
+            <div className="step-line"><div className="step-icon"><step.icon size={27} weight="light" /></div><span>0{index + 1}</span></div>
+            <h3>{step.title}</h3><p>{step.body}</p>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }

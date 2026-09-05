@@ -9,7 +9,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const review = await getReview(id).catch(() => null);
   if (!review) notFound();
   return (
-    <div className="mx-auto max-w-[1120px] px-4 py-10">
+    <div className="page-container app-page">
       <ReviewPoller initial={review} />
     </div>
   );

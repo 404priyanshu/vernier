@@ -1,19 +1,31 @@
+import Link from "next/link";
+import { ArrowRight, CaretRight, FileMagnifyingGlass, Code, Flask, GitPullRequest } from "@phosphor-icons/react/dist/ssr";
 import { ScanForm } from "@/components/bench/scan-form";
 
-export const metadata = {
-  title: "Scan",
-};
+export const metadata = { title: "New review" };
 
 export default function ScanPage() {
   return (
-    <div className="mx-auto max-w-[720px] px-4 py-10">
-      <h1 className="text-3xl font-semibold tracking-[-0.03em]">Scan a pull request</h1>
-      <p className="mt-2 max-w-[54ch] text-[15px] text-muted">
-        Point Vernier at a GitHub URL or paste a unified diff. Heuristics always run. The model runs only for uncached
-        hunks.
-      </p>
-      <div className="mt-8">
-        <ScanForm />
+    <div className="app-page page-container scan-page">
+      <nav className="breadcrumb" aria-label="Breadcrumb"><Link href="/bench">Bench</Link><CaretRight size={12} /><span>New review</span></nav>
+      <div className="scan-heading"><h1 className="app-title">A closer look at your code.</h1>
+        <p className="page-description">Start with a pull request or a diff. Leave with a clear next step.</p></div>
+      <div className="scan-layout">
+        <div>
+          <ScanForm />
+          <p className="sample-invitation">Want to look around first? <Link href="/bench/sample" className="text-link">Explore a sample review <ArrowRight size={15} /></Link></p>
+        </div>
+        <aside className="scan-explainer">
+          <h2>What comes back</h2>
+          {[{ icon: FileMagnifyingGlass, title: "The finding", body: "What went wrong, and exactly where." },
+            { icon: Code, title: "A suggested fix", body: "A concrete change you can review." },
+            { icon: Flask, title: "A test stub", body: "A starting point for a regression test." }].map((item) => (
+            <div className="scan-benefit" key={item.title}>
+              <item.icon size={29} weight="light" /><div><h3>{item.title}</h3><p>{item.body}</p></div>
+            </div>
+          ))}
+          <p className="scan-note"><GitPullRequest size={19} />Vernier reviews your code. You decide what merges.</p>
+        </aside>
       </div>
     </div>
   );

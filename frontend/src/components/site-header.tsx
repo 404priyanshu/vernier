@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -15,60 +14,26 @@ const LINKS = [
 export function SiteHeader() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
-
   return (
-    <header className="sticky top-0 z-20 border-b border-rule bg-bg/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2.5 text-ink">
-          <Mark className="h-7 w-7" />
-          <span className="text-[15px] font-semibold tracking-tight">Vernier</span>
+    <header className="site-header">
+      <div className="page-container header-inner">
+        <Link href="/" className="wordmark" aria-label="Vernier home" onClick={() => setOpen(false)}>
+          <Mark className="brand-mark" /><span>Vernier</span>
         </Link>
-        <nav className="hidden items-center gap-8 text-[14px] md:flex" aria-label="Primary">
-          {LINKS.map((link) => {
-            const active = path === link.href || (link.href !== "/" && path.startsWith(link.href));
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={active ? "text-ink" : "text-muted hover:text-ink"}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <Link
-            href="/bench/scan"
-            className="bg-primary px-3.5 py-2 text-white transition-colors duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[oklch(0.36_0.19_261)] active:scale-[0.98]"
-          >
-            Scan a pull request
-          </Link>
+        <nav className="desktop-nav" aria-label="Primary">
+          {LINKS.map((link) => (
+            <Link key={link.href} href={link.href} aria-current={path.startsWith(link.href) ? "page" : undefined}>{link.label}</Link>
+          ))}
+          <Link href="/bench/scan" className="button button-primary button-small">Scan a pull request</Link>
         </nav>
-        <button
-          type="button"
-          className="md:hidden"
-          aria-expanded={open}
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? <X size={22} /> : <List size={22} />}
+        <button className="menu-toggle" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(!open)}>
+          {open ? <X size={24} /> : <List size={24} />}
         </button>
       </div>
-      {open ? (
-        <nav className="flex flex-col gap-3 border-t border-rule px-4 py-4 md:hidden" aria-label="Mobile">
-          {LINKS.map((link) => (
-            <Link key={link.href} href={link.href} onClick={() => setOpen(false)} className="py-1">
-              {link.label}
-            </Link>
-          ))}
-          <Link
-            href="/bench/scan"
-            onClick={() => setOpen(false)}
-            className="bg-primary px-3.5 py-2 text-center text-white"
-          >
-            Scan a pull request
-          </Link>
-        </nav>
-      ) : null}
+      {open && <nav id="mobile-navigation" className="mobile-nav" aria-label="Mobile">
+        {LINKS.map((link) => <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}
+        <Link href="/bench/scan" className="button button-primary" onClick={() => setOpen(false)}>Scan a pull request</Link>
+      </nav>}
     </header>
   );
 }
