@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getReview } from "@/lib/api";
 import type { ReviewDetail } from "@/lib/types";
 import { FindingPanel } from "./finding-panel";
@@ -28,15 +29,16 @@ export function ReviewPoller({ initial }: { initial: ReviewDetail }) {
   return (
     <article>
       <header className="mb-8">
+        <nav className="breadcrumb" aria-label="Breadcrumb"><Link href="/bench">Bench</Link><span>/</span><span>Review</span></nav>
         <div className="flex flex-wrap items-center gap-3">
           <StatusPill status={review.status} />
           <p className="font-mono text-[13px] text-muted">{prLabel(review.repo, review.pr_number)}</p>
         </div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">{review.title}</h1>
+        <h1 className="app-title mt-4">{review.title}</h1>
         <p className="mt-2 max-w-[65ch] text-[15px] text-muted">
           {review.summary || (review.status === "failed" ? review.error : "Pipeline is still running.")}
         </p>
-        <dl className="mt-5 grid gap-4 text-[13px] sm:grid-cols-4">
+        <dl className="review-metadata grid gap-4 text-[13px] sm:grid-cols-4">
           <div>
             <dt className="text-muted">Author</dt>
             <dd>{review.author || "unknown"}</dd>
