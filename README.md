@@ -6,6 +6,20 @@ Vernier pulls a PR diff, runs heuristic static checks, batches the remaining hun
 
 Stack: **Next.js**, **FastAPI**, **PostgreSQL**, **Redis**, OpenAI-compatible LLM API (SpaceXAI / xAI by default).
 
+## Preview
+
+[Live demo](https://vernier-phi.vercel.app) · [Explore the sample review](https://vernier-phi.vercel.app/bench/sample)
+
+![Vernier sample review with a SQL injection finding, suggested fix, and test stub](docs/images/sample-review.png)
+
+*Captured from the live app's explicitly labeled sample review. Suggested fixes and test stubs still need a developer's review.*
+
+## Engineering choice: cache individual hunks
+
+Model results are cached by prompt version, model, and normalized diff hunk. An unchanged hunk can reuse a previous result even when the rest of a pull request changes, avoiding another model call. Changing the prompt version or model invalidates that identity. The tradeoff is that hunk-level reuse is not a full-repository analysis: surrounding context outside that hunk can change without changing its cache key.
+
+See the [pipeline](backend/app/services/pipeline.py), [cache key](backend/app/services/cache.py), and [pipeline tests](backend/tests/test_pipeline.py).
+
 ## Architecture
 
 ```
